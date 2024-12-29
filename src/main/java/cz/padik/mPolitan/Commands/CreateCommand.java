@@ -30,7 +30,7 @@ public class CreateCommand implements CommandExecutor {
         }
 
         if (args.length < 3) {
-            player.sendMessage("§6[Workshop] §cPoužij: /vehicle create <typ vozidla> <jméno>");
+            player.sendMessage("§6[Workshop] §ePoužij: §6/vehicle create <typ vozidla> <jméno>");
             return true;
         }
 
@@ -39,7 +39,7 @@ public class CreateCommand implements CommandExecutor {
 
         // Kontrola, zda má hráč označenou oblast
         if (!toolVisualizer.hasPlayerSelection(player)) {
-            player.sendMessage("§6[Workshop] §cMusíš nejprve označit oblast pomocí nástroje zlatá motyka.");
+            player.sendMessage("§6[Workshop] §eMusíš nejprve označit oblast pomocí nástroje §6zlatá motyka.");
             return true;
         }
 

@@ -4,7 +4,6 @@ import cz.padik.mPolitan.vehicles.VehicleConfig;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,15 +11,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
-public class AdminInputCommand implements CommandExecutor {
+public class AdminOutputCommand implements CommandExecutor {
 
     private final VehicleConfig vehicleConfig;
 
-    public AdminInputCommand(VehicleConfig vehicleConfig) {
+    public AdminOutputCommand(VehicleConfig vehicleConfig) {
         this.vehicleConfig = vehicleConfig;
     }
 
@@ -31,8 +28,8 @@ public class AdminInputCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length < 2) { // Očekáváme minimálně 2 argumenty: input, jméno vozidla
-            player.sendMessage("§cPoužití: /vehicleadmin input <jméno vozidla>");
+        if (args.length < 2) { // Očekáváme minimálně 2 argumenty: output, jméno vozidla
+            sender.sendMessage("§cPoužití: /vehicleadmin output <jméno vozidla>");
             return true;
         }
 
@@ -46,48 +43,63 @@ public class AdminInputCommand implements CommandExecutor {
             return true;
         }
 
-        // Načíst body point1 a point2 ze souboru
+        // Načíst strukturu vozidla
         YamlConfiguration config = YamlConfiguration.loadConfiguration(vehicleFile);
+        Map<String, Object> structure = config.getConfigurationSection("structure").getValues(false);
+        if (structure == null || structure.isEmpty()) {
+            player.sendMessage("§cStruktura vozidla \"" + vehicleName + "\" nebyla nalezena.");
+            return true;
+        }
+
+        // Načíst souřadnice point1 a point2
         Location point1 = deserializeLocation(config.getString("point1"), player);
         Location point2 = deserializeLocation(config.getString("point2"), player);
 
         if (point1 == null || point2 == null) {
-            player.sendMessage("§cNelze najít body \"point1\" nebo \"point2\" ve vozidle \"" + vehicleName + "\".");
+            player.sendMessage("§cBod \"point1\" nebo \"point2\" není správně definován ve vozidle \"" + vehicleName + "\".");
             return true;
         }
 
-        // Sestavení struktury
-        Map<String, String> structure = new HashMap<>();
+        // Vypočítat minimální bod
         int minX = Math.min(point1.getBlockX(), point2.getBlockX());
         int minY = Math.min(point1.getBlockY(), point2.getBlockY());
         int minZ = Math.min(point1.getBlockZ(), point2.getBlockZ());
 
-        int maxX = Math.max(point1.getBlockX(), point2.getBlockX());
-        int maxY = Math.max(point1.getBlockY(), point2.getBlockY());
-        int maxZ = Math.max(point1.getBlockZ(), point2.getBlockZ());
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Location loc = new Location(point1.getWorld(), x, y, z);
-                    Block block = loc.getBlock();
-                    if (block.getType() != Material.AIR) {
-                        String relativeCoords = (x - minX) + "," + (y - minY) + "," + (z - minZ);
-                        BlockData blockData = block.getBlockData();
-                        String blockInfo = block.getType().toString().toLowerCase() + blockData.getAsString().replaceFirst("^[^\\[]+", "");
-                        structure.put(relativeCoords, blockInfo);
-                    }
-                }
-            }
-        }
-
-        config.createSection("structure", structure);
+        // Nastavit základní bod na minimální bod
+        Location adjustedBaseLocation = new Location(point1.getWorld(), minX, minY, minZ);
 
         try {
-            config.save(vehicleFile);
-            player.sendMessage("§aStruktura vozidla \"" + vehicleName + "\" byla úspěšně uložena.");
-        } catch (IOException e) {
-            player.sendMessage("§cNepodařilo se uložit strukturu vozidla.");
+            for (Map.Entry<String, Object> entry : structure.entrySet()) {
+                String[] relativeCoords = entry.getKey().split(",");
+                int relX = Integer.parseInt(relativeCoords[0]);
+                int relY = Integer.parseInt(relativeCoords[1]);
+                int relZ = Integer.parseInt(relativeCoords[2]);
+
+                String blockDataString = (String) entry.getValue();
+                int indexOfAttributes = blockDataString.indexOf("[");
+                Material material;
+                String blockData = null;
+
+                if (indexOfAttributes != -1) {
+                    material = Material.valueOf(blockDataString.substring(0, indexOfAttributes).toUpperCase());
+                    blockData = blockDataString.substring(indexOfAttributes);
+                } else {
+                    material = Material.valueOf(blockDataString.toUpperCase());
+                }
+
+                Location blockLocation = adjustedBaseLocation.clone().add(relX, relY, relZ);
+                Block block = blockLocation.getBlock();
+                block.setType(material);
+
+                // Nastavení orientace bloku, pokud existuje
+                if (blockData != null) {
+                    block.setBlockData(org.bukkit.Bukkit.createBlockData(material, blockData));
+                }
+            }
+
+            player.sendMessage("§aVozidlo \"" + vehicleName + "\" bylo úspěšně postaveno na minimálním bodu.");
+        } catch (Exception e) {
+            player.sendMessage("§cDošlo k chybě při stavbě vozidla \"" + vehicleName + "\".");
             e.printStackTrace();
         }
 
@@ -126,4 +138,3 @@ public class AdminInputCommand implements CommandExecutor {
         }
     }
 }
-

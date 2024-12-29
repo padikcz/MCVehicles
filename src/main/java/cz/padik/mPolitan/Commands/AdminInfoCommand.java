@@ -24,12 +24,12 @@ public class AdminInfoCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length < 1) {
+        if (args.length < 2) { // Očekáváme "info" a jméno vozidla
             player.sendMessage("§cPoužití: /vehicleadmin info <jméno vozidla>");
             return true;
         }
 
-        String vehicleName = args[0];
+        String vehicleName = args[1];
         File dataFolder = new File(vehicleConfig.getPlugin().getDataFolder(), "data/vehicles");
 
         if (!dataFolder.exists() || !dataFolder.isDirectory()) {

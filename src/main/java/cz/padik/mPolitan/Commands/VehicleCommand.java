@@ -20,12 +20,12 @@ public class VehicleCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("§ePoužij /vehicle help pro nápovědu.");
+            sender.sendMessage("§6[§3Vehicle§6] §ePoužij §6/vehicle help §epro nápovědu.");
             return true;
         }
 
         if (!sender.hasPermission("vehicle.user")) {
-            sender.sendMessage("§cNemáš oprávnění pro použití tohoto příkazu.");
+            sender.sendMessage("§6[§3Vehicle§6] §cNemáš oprávnění pro použití tohoto příkazu.");
             return true;
         }
 
@@ -49,7 +49,7 @@ public class VehicleCommand implements CommandExecutor {
                 new SteeringCommand(vehicleConfig).onCommand(sender, command, label, args);
                 break;
             default:
-                sender.sendMessage("§cNeznámý příkaz. Použij /vehicle help pro více informací.");
+                sender.sendMessage("§6[§3Vehicle§6] §eNeznámý příkaz. Použij §6/vehicle help §epro více informací.");
                 break;
         }
         return true;

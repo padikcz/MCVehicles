@@ -16,35 +16,28 @@ public class VehicleAdminCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("vehicle.admin")) {
-            sender.sendMessage("§cNemáš oprávnění pro použití admin příkazů.");
-            return true;
-        }
-
         if (args.length == 0) {
             sender.sendMessage("§ePoužij /vehicleadmin help pro nápovědu.");
             return true;
         }
 
+        if (!sender.hasPermission("vehicle.admin")) {
+            sender.sendMessage("§cNemáš oprávnění pro použití admin příkazů.");
+            return true;
+        }
+
         switch (args[0].toLowerCase()) {
-            case "info":
-                if (args.length < 2) {
-                    sender.sendMessage("§cPoužij /vehicleadmin info <jméno vozidla>.");
-                    return true;
-                }
-                String vehicleNameInfo = args[1];
-                new AdminInfoCommand(vehicleConfig).onCommand(sender, command, label, new String[]{vehicleNameInfo});
-                break;
-            case "input":
-                if (args.length < 2) {
-                    sender.sendMessage("§cPoužij /vehicleadmin input <jméno vozidla>.");
-                    return true;
-                }
-                String vehicleNameInput = args[1];
-                new AdminInputCommand(vehicleConfig).onCommand(sender, command, label, new String[]{vehicleNameInput});
-                break;
             case "help":
                 new AdminHelpCommand().onCommand(sender, command, label, args);
+                break;
+            case "info":
+                new AdminInfoCommand(vehicleConfig).onCommand(sender, command, label, args);
+                break;
+            case "input":
+                new AdminInputCommand(vehicleConfig).onCommand(sender, command, label, args);
+                break;
+            case "ouput":
+                new AdminOutputCommand(vehicleConfig).onCommand(sender, command, label, args);
                 break;
             default:
                 sender.sendMessage("§cNeznámý Admin příkaz. Použij /vehicleadmin help pro více informací.");
