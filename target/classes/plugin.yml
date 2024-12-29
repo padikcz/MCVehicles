@@ -1,0 +1,11 @@
+name: Vehicles
+version: '1.2'
+main: cz.padik.mPolitan.Main
+api-version: '1.21'
+commands:
+  vehicle:
+    description: Základní příkazy pro vozidla.
+    usage: /<command>
+  vehicleadmin:
+    description: Admin příkazy pro vozidla.
+    usage: /<command>
